@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <style>
+        #a {
+            display: block;
+            position: fixed;
+            top: 0;
+            left: 0;
+            background: black;
+            z-index: -1;
+        }
+
+        #grav {
+            display: inline;
+            position: relative;
+        }
+
+        body {
+            color: white;
+            font-family: Monospace;
+        }
+    </style>
+</head>
+
+<body>
+    <canvas id="a"></canvas>
+    <input type="range" id="grav" min="0" max="100" value="9" step="0.1"> Gravity
+    <br>
+    <input type="range" id="speed" min="0" max="20" value="1" step="0.5"> Speed
+    <script>
+        var b = document.getElementById("a"),
+            c = b.getContext("2d");
+        b.width = window.innerWidth;
+        b.height = window.innerHeight;
+        var a = 10,
+            arr = [];
+        class Particle {
+            constructor(x, y, pos, rad) {
+                this.x = x;
+                this.y = y;
+                this.pos = pos;
+                this.rad = rad;
+            }
+            draw() {
+                c.beginPath();
+                c.fillStyle = "#00ffff";
+                c.fillRect(
+                    this.x + Math.cos(this.pos * Math.PI / 180) * this.rad,
+                    this.y + Math.sin(this.pos * Math.PI / 180) * this.rad,
+                    1,
+                    1
+                );
+                c.fill();
+            }
+        }
+        function produce() {
+            var period = 10,
+                gravity = Number(document.getElementById("grav").value),
+                waveLength = (gravity * Math.pow(period, 2)) / (Math.PI * 2);
+            arr.length = 0;
+            for (var i = b.width / 8; i < b.width * 7 / 8; i += 5) {
+                for (var ii = b.height / 8; ii < b.height * 7 / 8; ii += 5) {
+                    arr.push(new Particle(i, ii, (i + ii), 2 * a * Math.pow(Math.E, -2 * Math.PI * ii / 1.5 / waveLength)));
+                }
+            }
+        }
+        produce();
+        var num = 1;
+        function animate() {
+            window.requestAnimationFrame(animate);
+            c.clearRect(0, 0, b.width, b.height);
+            for (var i = 0; i < arr.length; i++) {
+                arr[i].draw();
+                arr[i].pos += num;
+                //console.log(arr[i].pos);
+            }
+        }
+        animate();
+        document.getElementById("grav").addEventListener("change", function () {
+            produce();
+        });
+        document.getElementById("speed").addEventListener("change", function () {
+            num = Number(document.getElementById("speed").value);
+        });
+
+    </script>
+</body>
+
+</html>

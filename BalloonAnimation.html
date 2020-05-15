@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <style>
+        canvas {
+            display: block;
+            position: fixed;
+            top: 0;
+            left: 0;
+        }
+    </style>
+</head>
+
+<body>
+    <canvas id="a"></canvas>
+    <script>
+        var b = document.getElementById("a");
+        var c = b.getContext("2d");
+        b.width = window.innerWidth;
+        b.height = window.innerHeight;
+        var x = b.width / 2;
+        var y = b.height / 2;
+        var swing = 0;
+        function pos_a(wid, inflate, face) {
+            c.beginPath();
+            c.moveTo(x, y);
+            c.quadraticCurveTo(x + inflate, y - wid / 2, x, y - wid);
+            c.quadraticCurveTo(x - inflate, y - wid / 2, x, y);
+            c.fill();
+            c.beginPath();
+            c.moveTo(x, y);
+            c.lineTo(x + swing, y + 100);
+            c.stroke();
+            c.beginPath();
+            c.arc(x - 50, y + 100, 20, 0, 2 * Math.PI);
+            c.moveTo(x - 50, y + 120);
+            c.lineTo(x - 50, y + 140);
+            c.lineTo(x + swing, y + 100);
+            c.lineTo(x - 50, y + 140);
+            c.lineTo(x - 100 - fgh, y + 180 - fgh);
+            c.lineTo(x - 50, y + 140);
+            c.lineTo(x - 50, y + 200);
+            c.lineTo(x - 100 + fgh, y + 250 + fgh);
+            c.lineTo(x - 50, y + 200);
+            c.lineTo(x + fgh, y + 250 - fgh);
+            c.stroke();
+            if (face === "happy") {
+                c.beginPath();
+                c.arc(x - 40, y + 100, 5, 0, 2 * Math.PI);
+                c.stroke();
+                c.beginPath();
+                c.arc(x - 60, y + 100, 5, 0, 2 * Math.PI);
+                c.stroke();
+                c.fillStyle = "#000000";
+                c.beginPath();
+                c.arc(x - 50, y + 110, 5, 0, Math.PI);
+                c.fill();
+                c.beginPath();
+                c.arc(x - 40, y + 100, 1, 0, 2 * Math.PI);
+                c.fill();
+                c.beginPath();
+                c.arc(x - 60, y + 100, 1, 0, 2 * Math.PI);
+                c.fill();
+
+            }
+            else if (face === "ah!") {
+                c.beginPath();
+                c.arc(x - 40, y + 100, 10, 0, 2 * Math.PI);
+                c.stroke();
+                c.beginPath();
+                c.arc(x - 60, y + 100, 10, 0, 2 * Math.PI);
+                c.stroke();
+                c.fillStyle = "#000000";
+                c.beginPath();
+                c.arc(x - 50, y + 110, 5, 0, 2 * Math.PI);
+                c.fill();
+                c.beginPath();
+                c.arc(x - 38, y + 98, 1, 0, 2 * Math.PI);
+                c.fill();
+                c.beginPath();
+                c.arc(x - 63, y + 98, 1, 0, 2 * Math.PI);
+                c.fill();
+            }
+        }
+        /*function pos_b(wid, inflate, face) {
+            c.beginPath();
+            c.moveTo(x, y);
+            c.quadraticCurveTo(x+inflate, y-wid/2, x, y-wid);
+            c.quadraticCurveTo(x-inflate, y-wid/2, x, y);
+            c.fill();
+            c.beginPath();
+            c.moveTo(x, y);
+            c.lineTo(x+swing, y+100);
+            c.stroke();
+            c.beginPath();
+            c.arc(x-50, y+100, 20, 0, 2*Math.PI);
+            c.moveTo(x-50, y+120);
+            c.lineTo(x-50, y+140);
+            c.lineTo(x+swing, y+100);
+            c.lineTo(x-50, y+140);
+            c.lineTo(x-100, y+100);
+            c.lineTo(x-50, y+140);
+            c.lineTo(x-50, y+200);
+            c.lineTo(x-100, y+250);
+            c.lineTo(x-50, y+200);
+            c.lineTo(x, y+250);
+            c.stroke();
+            if(face === "happy") {
+                c.beginPath();
+                c.arc(x-40, y+100, 5, 0, 2*Math.PI);
+                c.stroke();
+                c.beginPath();
+                c.arc(x-60, y+100, 5, 0, 2*Math.PI);
+                c.stroke();
+                c.beginPath();
+                c.arc(x-50, y+110, 5, 0, Math.PI);
+                c.fill();
+                c.beginPath();
+                c.arc(x-40+fgh, y+90+fgh, 10, 0, 2*Math.PI);
+                c.fill();
+            	
+            }
+        }*/
+
+        var fps = 500;
+        var iu = 0;
+        var g = 0;
+        var d = 0;
+        var j = 0;
+        var fgh = 0;
+        function draw() {
+            setTimeout(function () {
+                window.requestAnimationFrame(draw);
+                c.clearRect(0, 0, b.width, b.height);
+                c.fillStyle = "hsl(" + j + ", 50%, 50%)";
+                x = Math.sin(g) * 10 + x;
+                swing = Math.sin(g) * 20;
+                //y = Math.cos(g)*10+y;
+                if (iu >= 200) {
+                    g += 0.2;
+                    y--;
+                    fgh = (Math.sin(j) / 10) * 500;
+                    pos_a(iu, iu, "ah!");
+                    //d+=0.5;
+                }
+                else {
+                    pos_a(iu, iu, "happy");
+                    iu++;
+                }
+                j += 0.1;
+            }, 1000 / fps);
+        }
+        draw();
+    </script>
+</body>
+
+</html>

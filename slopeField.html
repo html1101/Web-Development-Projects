@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <style>
+        #a {
+            position: fixed;
+            top: 0;
+            left: 0;
+        }
+    </style>
+</head>
+
+<body>
+    <canvas id="a"></canvas>
+    <script>
+        let b = document.getElementById("a"),
+            c = b.getContext("2d")
+        b.width = window.innerWidth
+        b.height = window.innerHeight
+
+        c.fillRect(0, 0, b.width, b.height)
+        class Point {
+            constructor(x, y, deg, size, col, wid = 2) {
+                this.x1 = x
+                this.y1 = y
+                // const toRad = (deg * Math.PI)/180
+                this.x2 = x + Math.cos(deg) * size
+                this.y2 = y + Math.sin(deg) * size
+                this.col = col
+                this.size = size
+                this.wid = wid
+            }
+            refresh(newDeg) {
+                this.x2 = this.x1 + Math.cos(newDeg) * this.size
+                this.y2 = this.y1 + Math.sin(newDeg) * this.size
+            }
+            draw() {
+                c.beginPath()
+                // c.fillStyle = this.col
+                // c.fillRect(this.x, this.y, this.width, this.height)
+                c.lineWidth = this.wid
+                c.strokeStyle = this.col
+                c.moveTo(this.x1, this.y1)
+                c.lineTo(this.x2, this.y2)
+                c.stroke()
+            }
+            clear() {
+                c.beginPath()
+                c.strokeStyle = "black"
+                c.lineWidth = this.wid + 1
+                c.strokeStyle = this.col
+                c.moveTo(this.x1, this.y1)
+                c.lineTo(this.x2, this.y2)
+                c.stroke()
+            }
+        }
+
+        let fillIt = [],
+            howMany = (b.width * b.height) / 100,
+            mouseX = b.width / 2,
+            mouseY = b.height / 2,
+            zFunc = (x, y, count) => {
+                let newX = (x - (mouseX / 2)) / 4,
+                    newY = (y - (mouseY / 2)) / 4
+                return Math.cos(x + count) + Math.sin(y + count)
+                // Math.cos(x + count)+Math.sin(y + count)
+                // Math.cos((x - mouseX) + count)+Math.sin((y - mouseY) + count)
+            }
+        for (let i = 0; i < Math.sqrt(howMany); i++) {
+            for (let ii = 0; ii < Math.sqrt(howMany); ii++) {
+                let x = (b.width / Math.sqrt(howMany)) * i,
+                    y = (b.height / Math.sqrt(howMany)) * ii
+                fillIt.push(new Point(x, y, zFunc(x, y, 0), 5, `hsl(${i}, 100%, 50%)`, 1))
+            }
+        }
+        let count = 1
+        const render = () => {
+            window.requestAnimationFrame(render)
+            c.fillRect(0, 0, b.width, b.height)
+            // zFunc(x, y)
+            for (let i = 0; i < fillIt.length; i++) {
+                fillIt[i].refresh(zFunc(fillIt[i].x1, fillIt[i].y1, count))
+                fillIt[i].draw()
+                fillIt[i].clear()
+            }
+            count += 0.1
+        }
+        document.body.addEventListener("mousemove", (e) => {
+            mouseX = e.clientX
+            mouseY = e.clientY
+        })
+        render()
+    </script>
+</body>
+
+</html>

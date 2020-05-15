@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <style>
+        #a {
+            position: fixed;
+            top: 0;
+            left: 0;
+            background: black;
+        }
+    </style>
+</head>
+
+<body>
+    <canvas id="a" onmousemove="l(event)" onmousedown="o()"></canvas>
+    <script>
+        var b = document.getElementById("a");
+        var c = b.getContext("2d");
+        b.width = window.innerWidth;
+        b.height = window.innerHeight;
+        var col = ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "a", "b", "c", "d", "e", "f"];
+        var coorx = [];
+        var coory = [];
+        var mousex, mousey;
+        /*Random bits of snow*/
+        for (var bb = 0; bb <= 1000; bb++) {
+            coorx.push(Math.random() * b.width);
+            coory.push(Math.random() * b.height);
+        }
+        function snow() {
+            c.clearRect(0, 0, b.width, b.height);
+            for (var lala = 0; lala <= 1000; lala++) {
+                //c.fillStyle = "#" + col[Math.floor(Math.random()*16)] + col[Math.floor(Math.random()*16)] + col[Math.floor(Math.random()*16)] + col[Math.floor(Math.random()*16)] + col[Math.floor(Math.random()*16)] + col[Math.floor(Math.random()*16)];
+                c.fillStyle = "hsla(" + lala + ", 100%, 50%, 1)";
+                var speed = (lala / 100) + 0.5;
+
+                if (mousey > coory[lala])
+                    coory[lala] += speed;
+                else coory[lala] -= speed;
+
+                if (mousex > coorx[lala])
+                    coorx[lala] += speed;
+                else coorx[lala] -= speed;
+
+                coorx[lala] += Math.random() * 4 - 2;
+                coory[lala] += Math.random() * 4 - 2;
+
+                if (coorx[lala] >= b.width) {
+                    coorx[lala] = 0;
+                }
+                if (coory[lala] >= b.height) {
+                    coory[lala] = 0;
+                }
+                if (coory[lala] <= 0) {
+                    coory[lala] = b.height;
+                }
+
+                if (coorx[lala] <= 0) {
+                    coorx[lala] = b.width;
+                }
+                c.fillRect(coorx[lala], coory[lala], 3, 3);
+
+            }
+        }
+
+        function l(event) {
+            mousex = event.clientX;
+            mousey = event.clientY;
+        }
+        function o() {
+            for (var lala = 0; lala <= 1000; lala++) {
+                coorx[lala] += Math.random() * -b.width / 2;
+                coory[lala] += Math.random() * -b.height / 2;
+                coory[lala] += Math.random() * b.height / 2;
+                coorx[lala] += Math.random() * b.width / 2;
+            }
+        }
+        setInterval(snow, 10);
+
+    </script>
+</body>
+
+</html>

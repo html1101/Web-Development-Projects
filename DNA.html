@@ -1,0 +1,926 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <link href="https://fonts.googleapis.com/css?family=Roboto&display=swap" rel="stylesheet">
+
+    <style>
+        canvas {
+            display: block;
+            position: fixed;
+            top: 0;
+            left: 0;
+        }
+
+        #info_panel {
+            position: fixed;
+            display: none;
+            top: 0;
+            left: 0;
+            width: auto;
+            height: auto;
+            background: black;
+            border: 2px solid white;
+            z-index: 2;
+            padding: 5px;
+            --top-it: 10em;
+            color: white;
+            font-family: "Roboto", sans-serif;
+            letter-spacing: 2px;
+        }
+
+        #b {
+            background: #81d8b5;
+            text-align: center;
+            border: none;
+            padding: 5px;
+            border: 1.5px solid white;
+            width: 100%;
+            font-weight: bolder;
+            margin-top: 5px;
+            color: white;
+            /*
+	#5a987f
+	*/
+            font-family: "Roboto", sans-serif;
+            letter-spacing: 3px;
+            transition: 0.2s;
+        }
+
+        #b:hover {
+            transition: 0.2s;
+            background: white;
+            color: #81d8b5;
+            border: 1.5px solid #81d8b5;
+        }
+
+        #info {
+            font-size: 11px;
+        }
+
+        #list {
+            display: -webkit-box;
+            display: -moz-box;
+            display: box;
+
+            -webkit-box-orient: vertical;
+            -moz-box-orient: vertical;
+            box-orient: vertical;
+        }
+
+        #list p:nth-child(n) {
+            display: inline;
+            overflow-wrap: break-word;
+            line-height: 2em;
+            background: transparent;
+            text-align: center;
+        }
+
+        #list p:nth-child(n+2):hover {
+            filter: brightness(105%);
+        }
+
+        #list p:nth-child(1) {
+            background: black;
+            border-bottom: 2px solid white;
+            transition: 0.25s;
+            display: inline-block;
+            height: calc(1.7em - 2px);
+            width: 7em;
+        }
+
+        /* #list p:nth-child(1):hover {
+	transition: 0.25s;
+} */
+        #list p:nth-child(n+2) {
+            opacity: 0;
+            z-index: -1;
+            transition: 0.2s;
+            position: absolute;
+            background: #81d8b5;
+            left: 0;
+            min-width: auto;
+            color: white;
+            /* 	box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.5); */
+        }
+
+        #imgIt {
+            width: 100px;
+            height: auto;
+            filter: invert(100%);
+        }
+    </style>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/109/three.min.js"></script>
+    <script src="https://threejs.org/examples/js/controls/OrbitControls.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/dat-gui/0.5/dat.gui.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/stats.js/r11/Stats.min.js"></script>
+</head>
+
+<body>
+    <div id="info_panel">
+        <div id="a">Adenine</div>
+        <div id="info">
+            <div id="doc"></div>
+            <!--Where we put whether it's a purine or pyridimine-->
+            Modifications:
+            <div id="list">Base
+                <div id="smaller_list">
+                    <p id="ade" class="l">Adenine</p>
+                    <p id="thy" class="l">Thymine</p>
+                    <p id="cyt" class="l">Cytosine</p>
+                    <p id="gua" class="l">Guanine</p>
+                </div>
+            </div>
+
+        </div>
+        <button id="b" type="button">Finished</button>
+    </div>
+    <input id="myInput" type="file" style="visibility:hidden">
+    <script>
+        // Simple initialization
+        /*
+        Cytosine - Red
+        Guanine - Green
+        Adenine - Blue
+        Thymine - Yellow
+        */
+        let scene = new THREE.Scene(),
+            cam = new THREE.PerspectiveCamera(
+                75,
+                window.innerWidth / window.innerHeight,
+                0.1,
+                1000
+            );
+        scene.background = new THREE.Color(0x000000);
+        cam.position.z = 70;
+
+        // You need a scene, perspective cam, renderer, setsize of renderer, & appendchild renderer.domElement
+        let codons = {
+            GGG: "Glycine",
+            GGA: "Glycine",
+            GGC: "Glycine",
+            GGU: "Glycine",
+            GAG: "Glutamic Acid",
+            GAA: "Glutamic Acid",
+            GAC: "Aspartic Acid",
+            GAU: "Aspartic Acid",
+            GCG: "Alanine",
+            GCA: "Alanine",
+            GCC: "Alanine",
+            GCU: "Alanine",
+            GUG: "Valine",
+            GUA: "Valine",
+            GUC: "Valine",
+            GUU: "Valine",
+            AGG: "Argnine",
+            AGA: "Argnine",
+            AGC: "Serine",
+            AGU: "Serine",
+            AAG: "Lysine",
+            AAA: "Lysine",
+            AAC: "Asparagine",
+            AAU: "Asparagine",
+            ACG: "Threonine",
+            ACA: "Theronine",
+            ACC: "Theonine",
+            ACU: "Theonine",
+            AUG: "Methionine(Start Codon)",
+            AUU: "Isoleucine",
+            AUC: "Isoleucine",
+            AUA: "Isoleucine",
+            CGU: "Argnine",
+            CGA: "Argnine",
+            CGG: "Argnine",
+            CGC: "Argnine",
+            CAA: "Glutamine",
+            CAG: "Glutamine",
+            CAU: "Histidine",
+            CAC: "Histidine",
+            CCC: "Proline",
+            CCU: "Proline",
+            CCA: "Proline",
+            CCG: "Proline",
+            CUU: "Leucine",
+            CUC: "Leucine",
+            CUA: "Leucine",
+            CUG: "Leucine",
+            UGG: "Tryptophan",
+            UGA: "Stop Codon",
+            UGU: "Cysteine",
+            UGC: "Cysteine",
+            UAA: "Stop Codon",
+            UAG: "Stop Codon",
+            UAU: "Tyrosine",
+            UAC: "Tyrosine",
+            UCU: "Serine",
+            UCA: "Serine",
+            UCC: "Serine",
+            UCG: "Serine",
+            UUU: "Phenylalanine",
+            UUC: "Phenylalanine",
+            UUA: "Leucine",
+            UUG: "Leucine"
+        };
+        var renderer = new THREE.WebGLRenderer();
+        let count = 0,
+            move = true;
+        //renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        document.body.appendChild(renderer.domElement);
+        // Here we mess with the GUI.
+
+        function download(filename, text) {
+            var element = document.createElement("a");
+            element.setAttribute(
+                "href",
+                "data:text/plain;charset=utf-8," + encodeURIComponent(text)
+            );
+            element.setAttribute("download", filename);
+
+            element.style.display = "none";
+            document.body.appendChild(element);
+
+            element.click();
+
+            document.body.removeChild(element);
+        }
+        let lineUp = false,
+            readyForSplit = false,
+            waiting = 0;
+        let side1 = [], // The sides of our DNA molecule
+            side2 = [],
+            length = 42,
+            code = {
+                N: "#35d6ed",
+                C: "#000000",
+                H: "#ff0000"
+            }, // The colors for our atoms
+            options = {
+                "GUI Settings": {
+                    Speed: 0.01,
+                    Lighting: 4,
+                    "DNA Length": length,
+                    "Auto Pan": false,
+                    "Skip to DNA Position: ": length / 2
+                },
+                "Download File": () => {
+                    let values = side1.slice();
+                    for (let i = 0; i < values.length; i++) {
+                        values[i] = values[i].nitrogen_base.letter;
+                    }
+                    download("DNA_MODEL.csv", values.join(", "));
+                    return 1;
+                },
+                "Upload File": () => {
+                    document.getElementById("myInput").click();
+                },
+                "Protein Synthesis": () => {
+                    // Save list of the proteins and the codons to a file
+                    let values = "",
+                        values2 = "";
+                    for (let i = 0; i < side1.length; i++) {
+                        values +=
+                            (letterO[side1[i].nitrogen_base.letter][0] !== "T"
+                                ? letterO[side1[i].nitrogen_base.letter][0]
+                                : "U") + ((i + 1) % 3 == 0 && i < side1.length - 1 ? ", " : "");
+                    }
+                    values2 = values.split(", ").map(val => {
+                        return codons[val] ? codons[val] : "Couldn't find codon";
+                    });
+                    download(
+                        "DNA_PROTEINS.csv",
+                        `Codons, ${values}
+Proteins, ${values2.join(", ")}`
+                    );
+                    return 1;
+                }
+            };
+        Array.prototype.pointMake = function (
+            rad,
+            polytime = 5,
+            closeIt = true,
+            startAng = 0
+        ) {
+            let arr = [];
+            for (let i = 0; i < polytime + (closeIt ? 1 : 0); i++) {
+                // Going through and adding the points
+                // Given the beginning point as this, go around.
+                arr.push({
+                    x:
+                        this[0] +
+                        rad * Math.cos(startAng * (Math.PI / 180) + i / polytime * 2 * Math.PI),
+                    y:
+                        this[1] -
+                        rad * Math.sin(startAng * (Math.PI / 180) + i / polytime * 2 * Math.PI),
+                    z: 0
+                });
+            }
+            return arr;
+        };
+        Array.prototype.fromPoints = function (numOfPoints = 5) {
+            // Given two points, rotate around to make my points.
+            let points = this.slice(),
+                dist = Math.sqrt(
+                    Math.pow(this[0].x - this[1].x, 2) + Math.pow(this[0].y - this[1].y, 2)
+                ),
+                ang = Math.acos((points[1].x - points[0].x) / dist); // Finding the angle our line is rotated at
+            for (let i = 1; i < numOfPoints + 1; i++) {
+                points.push({
+                    x: points[i].x + dist * Math.cos(ang + i * 72 * Math.PI / 180),
+                    y: points[i].y + dist * Math.sin(ang + i * 72 * Math.PI / 180),
+                    z: points[i].z
+                });
+            }
+            return points;
+        };
+        const createBase = (point, name) => {
+            let newBase = new THREE.Group(),
+                mat = new THREE.MeshStandardMaterial({ color: 0x00ff00 }),
+                points = [],
+                pivot = [],
+                data = [],
+                bonds = [],
+                count = 0,
+                values = [];
+            if (name == "A" || name == "G") {
+                // These are the purines. They have the same base, so let's construct them together.
+                // point is one pivot point; figuring out the second one takes a little math.
+                points = point.pointMake(1, 6, true, 90); // Making our six-sided polygon
+                pivot = points.slice(1, 3); // Taking the points to pivot around in order to make our pentagon
+
+                let newVersion = pivot.fromPoints();
+                data = "CCCCNCNCCNCNCC".split("");
+                bonds = [2, 1, 2, 1, 2, 1, 2, 1, 2, 1, 2, 1, 1];
+                values = [...points, ...newVersion];
+                // Transform into a line.
+            } else {
+                // These are the pyrimidines
+                points = point.pointMake(1, 6, true, 90);
+                data = "NCCCNCN";
+                bonds = [2, 1, 2, 1, 2, 1, 2];
+                values = points;
+            }
+            const dist = Math.sqrt(
+                Math.pow(points[0].x - points[1].x, 2) +
+                Math.pow(points[0].y - points[1].y, 2)
+            );
+            values.reduce((tot, val) => {
+                // As we chug through every value, we place the midpoint in newPush.
+                let ch = {};
+                for (let i in tot) {
+                    ch[i] = (tot[i] + val[i]) / 2;
+                }
+                mat.color = new THREE.Color(`hsl(${count}, 100%, 50%)`);
+                let vv = new THREE.Mesh(
+                    new THREE.CylinderBufferGeometry(
+                        bonds[count + 1] / 15,
+                        bonds[count + 1] / 15,
+                        dist
+                    ),
+                    mat.clone()
+                );
+                vv.position.set(...Object.values(ch));
+                vv.rotation.z = -Math.atan((val.x - tot.x) / (val.y - tot.y));
+                newBase.add(vv);
+                // Adding atoms now
+                mat.color = new THREE.Color(code[data[count][0]]);
+                let sph = new THREE.Mesh(new THREE.SphereGeometry(0.2, 54, 100), mat.clone());
+                sph.position.set(...Object.values(tot));
+                newBase.add(sph);
+                count++;
+                return val;
+            });
+            return newBase;
+        };
+        document.getElementById("myInput").addEventListener("change", function () {
+            var file_to_read = document.getElementById("myInput").files[0];
+            var fileread = new FileReader();
+            fileread.onload = function (e) {
+                let content = e.target.result,
+                    returnIt = content.split(", ");
+                while (scene.children.length > 0) {
+                    scene.remove(scene.children[0]);
+                }
+                [side1, side2] = create(returnIt, [], []);
+            };
+            fileread.readAsText(file_to_read);
+        });
+        let gui = new dat.GUI({
+            width: 400
+        }),
+            GUISettings = gui.addFolder("GUI Settings"),
+            speed = GUISettings.add(
+                options["GUI Settings"],
+                "Speed",
+                -0.05,
+                0.05
+            ).listen(),
+            light = GUISettings.add(options["GUI Settings"], "Lighting", 0, 10).listen(),
+            downloadIt = gui.add(options, "Download File"),
+            upload = gui.add(options, "Upload File"),
+            lengthChange = GUISettings.add(
+                options["GUI Settings"],
+                "DNA Length",
+                Math.abs(length - 40),
+                length + 40
+            ).listen(),
+            panAuto = GUISettings.add(options["GUI Settings"], "Auto Pan"),
+            DNAPos = GUISettings.add(
+                options["GUI Settings"],
+                "Skip to DNA Position: ",
+                Math.abs(length - 40),
+                length + 40
+            ).step(3),
+            transcript = gui.add(options, "Protein Synthesis");
+        gui.close();
+
+        // Listen for changing the length of the DNA molecule/DNA position
+        DNAPos.__onChange = () => {
+            cam.position.y =
+                options["GUI Settings"]["Skip to DNA Position: "] - side1.length / 2;
+        };
+        // Adding lighting
+        const ambientLight = new THREE.HemisphereLight(
+            0xddeeff,
+            0x202020,
+            options["GUI Settings"].Lighting - 2
+        ),
+            mainLight = new THREE.DirectionalLight(
+                0xffffff,
+                options["GUI Settings"].Lighting
+            );
+        // move the light back and up a bit
+        mainLight.position.set(2, 2, 2);
+        scene.add(ambientLight, mainLight);
+        light.__onChange = () => {
+            scene.remove(ambientLight, mainLight);
+            ambientLight.intensity = options["GUI Settings"].Lighting - 2;
+            mainLight.intensity = options["GUI Settings"].Lighting;
+            scene.add(ambientLight, mainLight);
+        };
+        // Once we're finished aditing, the panel disappears.
+        document.getElementById("b").addEventListener("click", () => {
+            document.getElementById("info_panel").style.display = "none";
+            // Now we're going to initialize all the changes we made.
+            // For now, we're just changing the bases. So we're going to check those out really quickly.
+            [side1, side2] = keepColor(side1, side2);
+            move = true;
+        });
+
+        // Stylizing the dropdown
+        let go = document.getElementsByClassName("l"),
+            selectedOne = document.getElementsByClassName("l")[0],
+            focusNum = [0, 0]; // the position we edit our nitrogen base.
+
+        const refresh = () => {
+            for (let i = 0; i < go.length; i++) {
+                if (go[i] !== selectedOne) {
+                    go[i].style.marginTop = `calc(${i * 2}em + 2px)`;
+                } else {
+                    go[i].style.marginTop = "0";
+                }
+                if (go[i] !== selectedOne) {
+                    go[i].style.opacity = "0";
+                    go[i].style.zIndex = "-1";
+                }
+            }
+        };
+        refresh();
+        let letterO = {
+            A: [
+                "T",
+                0x0909ff,
+                "Adenine",
+                "https://upload.wikimedia.org/wikipedia/commons/thumb/d/db/Adenine.svg/1200px-Adenine.svg.png"
+            ],
+            C: [
+                "G",
+                0xff0000,
+                "Cytosine",
+                "https://upload.wikimedia.org/wikipedia/commons/1/10/Cytosine_chemical_structure.png"
+            ],
+            T: [
+                "A",
+                0xffff00,
+                "Thymine",
+                "https://upload.wikimedia.org/wikipedia/commons/thumb/a/ab/Thymine_skeletal.svg/1200px-Thymine_skeletal.svg.png"
+            ],
+            G: [
+                "C",
+                0x00ff00,
+                "Guanine",
+                "https://upload.wikimedia.org/wikipedia/commons/thumb/3/3f/Guanin.svg/1200px-Guanin.svg.png"
+            ],
+            U: [
+                "A",
+                0xffa500,
+                "Uracil",
+                "https://upload.wikimedia.org/wikipedia/commons/thumb/b/b4/Uracil.svg/1200px-Uracil.svg.png"
+            ]
+        };
+        // Swapping out the first thing in the dropdown with the one we click.
+        for (let i = 0; i < go.length; i++) {
+            go[i].addEventListener("click", () => {
+                go = document.getElementsByClassName("l");
+                let swap = go[0].cloneNode(true);
+                go[0].id = go[i].id;
+                go[0].innerHTML = go[i].innerHTML;
+                go[i].id = swap.id;
+                go[i].innerHTML = swap.innerHTML;
+                go = document.getElementsByClassName("l");
+                // Edit our base at that position.
+                if (focusNum[1] == 0) {
+                    // Editing the first side to be our new base
+                    side1[focusNum[0]].nitrogen_base.material.color = new THREE.Color(
+                        letterO[go[0].innerHTML[0]][1]
+                    );
+                    side2[focusNum[0]].nitrogen_base.material.color = new THREE.Color(
+                        letterO[letterO[go[0].innerHTML[0]][0]][1]
+                    );
+                    side1[focusNum[0]].nitrogen_base.letter = go[0].innerHTML[0];
+                    side2[focusNum[0]].nitrogen_base.letter = letterO[go[0].innerHTML[0]][0];
+                } else {
+                    side2[focusNum[0]].nitrogen_base.material.color = new THREE.Color(
+                        letterO[go[0].innerHTML[0]][1]
+                    );
+                    side1[focusNum[0]].nitrogen_base.material.color = new THREE.Color(
+                        letterO[letterO[go[0].innerHTML[0]][0]][1]
+                    );
+                    side2[focusNum[0]].nitrogen_base.letter = go[0].innerHTML[0];
+                    side1[focusNum[0]].nitrogen_base.letter = letterO[go[0].innerHTML[0]][0];
+                }
+                [side1, side2] = keepColor(side1, side2);
+                refresh();
+            });
+        }
+        // Okay. So.
+        // We're going to basically:
+        /*
+        - Create a DNA molecule.
+          - Phosphate groups
+            - Nitrogen bases
+            - deoxyribose(deoxyribose)
+        Create objects for each side.
+        */
+        const keepColor = (side11, side21) => {
+            // Goes through side1 and side2 to make sure the colors are all right.
+            let side12 = side11.slice(),
+                side22 = side21.slice();
+            for (let i = 0; i < side12.length; i++) {
+                side12[i].nitrogen_base.material.color = new THREE.Color(
+                    letterO[side12[i].nitrogen_base.letter][1]
+                );
+                side22[i].nitrogen_base.material.color = new THREE.Color(
+                    letterO[side22[i].nitrogen_base.letter][1]
+                );
+
+                side12[i].phosphate.material.color = new THREE.Color(0xa3a3a3);
+                side22[i].phosphate.material.color = new THREE.Color(0xa3a3a3);
+                side12[i].deoxyribose.material.color = new THREE.Color(0x800080);
+                side22[i].deoxyribose.material.color = new THREE.Color(0x800080);
+            }
+            return [side12, side22];
+        };
+        document.getElementsByClassName("l")[0].addEventListener("mouseover", () => {
+            for (let i = 0; i < go.length; i++) {
+                go[i].style.zIndex = "4";
+                go[i].style.opacity = "1";
+            }
+        });
+        document.getElementById("list").addEventListener("mouseleave", () => {
+            let go = document.getElementsByClassName("l");
+            for (let i = 0; i < go.length; i++) {
+                if (go[i] !== selectedOne) {
+                    go[i].style.opacity = "0";
+                    go[i].style.zIndex = "-1";
+                }
+            }
+        });
+
+        // Now we're going to push in values for each of those.
+        const create = (
+            keys,
+            iniSide1,
+            iniSide2,
+            atomStr = options["GUI Settings"]["Atom Structures"]
+        ) => {
+            let side1 = iniSide1.slice(),
+                side2 = iniSide2.slice();
+
+            const ambientLight = new THREE.HemisphereLight(
+                0xddeeff,
+                0x202020,
+                options["GUI Settings"].Lighting - 2
+            ),
+                mainLight = new THREE.DirectionalLight(
+                    0xffffff,
+                    options["GUI Settings"].Lighting
+                );
+            // move the light back and up a bit
+            mainLight.position.set(1, 1, 1);
+            scene.add(ambientLight, mainLight);
+            for (let i = 0; i < keys.length; i++) {
+                // Okay. So.
+                // This is going to be a simple version, so our phosphates and deoxyriboses are going to be balls.
+                // Phosphates are purple, deoxyriboses are pink, and we'll see about the nitrogen bases once we get there.
+                // Assign a letter.
+                let letter = keys[i],
+                    correspond = letterO[letter][0],
+                    fiveCarbon = [0, 0].pointMake(0.01, 5, (closeIt = true)),
+                    newShape = new THREE.Shape();
+                newShape.moveTo(fiveCarbon[0].x, fiveCarbon[0].y);
+                for (let ii = 1; ii < fiveCarbon.length - 1; ii++) {
+                    newShape.lineTo(fiveCarbon[ii].x, fiveCarbon[ii].y);
+                }
+                let sug = new THREE.ExtrudeGeometry(newShape, {
+                    steps: 1,
+                    depth: 0.1,
+                    bevelThickness: 0.2,
+                    bevelSize: 0.3
+                    // depth: 0.1,
+                    // bevelEnabled: true,
+                    // bevelThickness: 0.2,
+                    // bevelSize: 0.2,
+                    // bevelOffset: 0,
+                    // bevelSegments: 1
+                }),
+                    nitro = new THREE.CylinderBufferGeometry(0.1, 0.1, 2),
+                    phos = new THREE.SphereBufferGeometry(0.1),
+                    materialp = new THREE.MeshStandardMaterial({
+                        color: 0xa3a3a3,
+                        wireframe: false,
+                        flatShading: true
+                    }),
+                    sugn = new THREE.MeshStandardMaterial({
+                        color: 0x800080,
+                        flatShading: true
+                    });
+                side1.push({
+                    phosphate: new THREE.Mesh(phos, materialp),
+                    deoxyribose: new THREE.Mesh(sug, sugn),
+                    nitrogen_base: new THREE.Mesh(
+                        nitro,
+                        new THREE.MeshStandardMaterial({
+                            color: letterO[letter][1],
+                            wireframe: false,
+                            flatShading: true
+                        })
+                    )
+                }); // [phosphate, deoxyribose, nitrogen base]
+                side2.push({
+                    phosphate: new THREE.Mesh(phos, materialp),
+                    deoxyribose: new THREE.Mesh(sug, sugn),
+                    nitrogen_base: new THREE.Mesh(
+                        nitro,
+                        new THREE.MeshStandardMaterial({
+                            color: letterO[correspond][1],
+                            wireframe: false,
+                            flatShading: true
+                        })
+                    )
+                }); // [phosphate, deoxyribose, nitrogen base]
+                side1[side1.length - 1]["nitrogen_base"].number = [i, 0]; // So we can access the base later and edit it
+                side2[side2.length - 1]["nitrogen_base"].number = [i, 1]; // So we can access it later and edit it
+                // So we can look at the letter
+                side1[side1.length - 1].nitrogen_base.letter = letter;
+                side2[side2.length - 1].nitrogen_base.letter = correspond;
+
+                for (let i in side1[side1.length - 1]) {
+                    side1[side1.length - 1][i].callback = obj => {
+                        move = false;
+                        // WHERE WE PUSH THE INFO TO THE FRONT
+                        // This will NOT use the 3d canvas because then it's pretty much impossible to read/edit info, as well as impossible to edit. So it'll pop up as a box on the screen.
+                        [side1, side2] = keepColor(side1, side2);
+                        let newColor = obj.material.color;
+                        newColor.r += 0.5;
+                        newColor.g += 0.5;
+                        newColor.b += 0.5;
+                        obj.material.color = newColor;
+                        // obj.material.color = new THREE.Color(0xffffff)
+                        if (i == "nitrogen_base") {
+                            document.getElementById("info").style.display = "block";
+                            document.getElementById("a").innerHTML = `<img src="${
+                                letterO[obj.letter][3]
+                                }" id="imgIt"><br>${letterO[obj.letter][2]}`;
+                            for (let i = 0; i < go.length; i++) {
+                                if (go[i].innerHTML == letterO[obj.letter][2]) {
+                                    // Swap this with the first element.
+                                    go[i].innerHTML = go[0].innerHTML;
+                                    go[i].id = go[0].id;
+                                    go[0].innerHTML = letterO[obj.letter][2];
+                                    go[0].innerHTML = letterO[obj.letter][2];
+                                    go[0].id = letterO[obj.letter][2].toLowerCase().slice(0, 3);
+                                }
+                            }
+                            go = document.getElementsByClassName("l");
+                            document.getElementById("doc").innerHTML =
+                                obj.letter == "A" || obj.letter == "G" ? "Purine" : "Pyrimidine";
+                        }
+                        if (i !== "nitrogen_base") {
+                            str = i.split("");
+                            str[0] = str[0].toUpperCase();
+                            document.getElementById("info").style.display = "none";
+                            document.getElementById("a").innerHTML = str.join("");
+                        }
+                        document.getElementById("info_panel").style.display = "block";
+                        document.getElementById("info_panel").style.width = "auto";
+
+                        return obj;
+                    };
+                    side2[side2.length - 1][i].callback = obj => {
+                        move = false;
+                        [side1, side2] = keepColor(side1, side2);
+                        let newColor = obj.material.color;
+                        newColor.r += 0.5;
+                        newColor.g += 0.5;
+                        newColor.b += 0.5;
+                        obj.material.color = newColor;
+                        if (i == "nitrogen_base") {
+                            document.getElementById("doc").innerHTML =
+                                obj.letter == "A" || obj.letter == "G" ? "Purine" : "Pyrimidine";
+                            document.getElementById("info").style.display = "block";
+                            console.log(letterO[obj.letter]);
+                            document.getElementById("a").innerHTML = `<img src="${
+                                letterO[obj.letter][3]
+                                }" id="imgIt"><br>${letterO[obj.letter][2]}`;
+                            for (let i = 0; i < go.length; i++) {
+                                if (go[i].innerHTML == letterO[obj.letter][2]) {
+                                    // Swap this with the first element.
+                                    go[i].innerHTML = go[0].innerHTML;
+                                    go[i].id = go[0].id;
+                                    go[0].innerHTML = letterO[obj.letter][2];
+                                    go[0].innerHTML = letterO[obj.letter][2];
+                                    go[0].id = letterO[obj.letter][2].toLowerCase().slice(0, 3);
+                                }
+                            }
+                            go = document.getElementsByClassName("l");
+                        }
+                        if (i !== "nitrogen_base") {
+                            document.getElementById("info").style.display = "none";
+                            str = i.split("");
+                            str[0] = str[0].toUpperCase();
+                            document.getElementById("a").innerHTML = str.join("");
+                        }
+                        document.getElementById("info_panel").style.display = "block";
+                        document.getElementById("info_panel").style.width = "auto";
+                        return obj;
+                    };
+                }
+                // light.target = side1[side1.length - 1].phosphate
+                scene.add(side1[side1.length - 1].phosphate);
+                scene.add(side1[side1.length - 1].deoxyribose);
+                scene.add(side1[side1.length - 1].nitrogen_base);
+                scene.add(side2[side2.length - 1].phosphate);
+                scene.add(side2[side2.length - 1].deoxyribose);
+                scene.add(side2[side2.length - 1].nitrogen_base);
+            }
+            return [side1, side2];
+        };
+        let letters = ["T", "A", "C"];
+        for (let i = 0; i < length - 3; i++) {
+            // Put letters into letters randomly if we don't upload from a file.
+            letters.push(
+                Object.keys(letterO)[
+                Math.floor(Math.random() * (Object.keys(letterO).length - 1))
+                ]
+            ); // Excluding uracil
+        }
+        [side1, side2] = create(letters, [], []);
+        lengthChange.__onChange = () => {
+            if (length - Math.round(options["GUI Settings"]["DNA Length"]) > 0) {
+                // Taking out some
+                for (
+                    let i = 0;
+                    i < Math.abs(length - Math.round(options["GUI Settings"]["DNA Length"]));
+                    i++
+                ) {
+                    let ev1 = side1.splice(side1.length - 1 - i, 1)[0],
+                        ev2 = side2.splice(side2.length - 1 - i, 1)[0];
+                    scene.remove(
+                        ev1.phosphate,
+                        ev1.nitrogen_base,
+                        ev1.deoxyribose,
+                        ev2.phosphate,
+                        ev2.nitrogen_base,
+                        ev2.deoxyribose
+                    );
+                }
+            } else {
+                // Adding some
+                let letters = [];
+                for (
+                    let i = 0;
+                    i < Math.abs(length - Math.round(options["GUI Settings"]["DNA Length"]));
+                    i++
+                ) {
+                    // Put letters into letters randomly if we don't upload from a file.
+                    letters.push(
+                        Object.keys(letterO)[
+                        Math.floor(Math.random() * Object.keys(letterO).length)
+                        ]
+                    );
+                }
+                [side1, side2] = create(letters, side1, side2);
+            }
+            length = Math.round(options["GUI Settings"]["DNA Length"]);
+        };
+        // Destructuring needs semicolons before because otherwise the interpreter thinks: create(length)[side1, side2]. Which it doesn't like.
+        [side1, side2] = keepColor(side1, side2);
+        controls = new THREE.OrbitControls(cam, renderer.domElement);
+        controls.enableKeys = false;
+        var raycaster = new THREE.Raycaster();
+        var mouse = new THREE.Vector2();
+        // Handle all clicks to determine of a three.js object was clicked and trigger its callback
+        function onDocumentMouseDown(event) {
+            event.preventDefault();
+
+            mouse.x = event.clientX / renderer.domElement.clientWidth * 2 - 1;
+            mouse.y = -(event.clientY / renderer.domElement.clientHeight) * 2 + 1;
+
+            raycaster.setFromCamera(mouse, cam);
+            // We need to look at side1 and side2, so we need to turn them into readable arrays for meshObjects.
+            meshObjects = []; // three.js objects with click handlers we are interested in
+            for (let i = 0; i < side1.length; i++) {
+                for (let ii in side1[i]) {
+                    meshObjects.push(side1[i][ii]);
+                }
+                for (let ii in side2[i]) {
+                    meshObjects.push(side2[i][ii]);
+                }
+            }
+            var intersects = raycaster.intersectObjects(meshObjects);
+            if (intersects.length) {
+                if (typeof intersects[0].object.callback == "function") {
+                    intersects[0].object = intersects[0].object.callback(intersects[0].object);
+                    if ("number" in intersects[0].object) {
+                        // Nitrogen base!
+                        focusNum = intersects[0].object.number;
+                    }
+                }
+            }
+        }
+
+        var stats = new Stats(),
+            rnaSequence = [];
+        // Align top-left
+        // stats.domElement.style.position = 'absolute';
+        // stats.domElement.style.left = '0px';
+        // stats.domElement.style.top = '0px';
+
+        // document.body.appendChild( stats.domElement );
+        document.addEventListener("mousedown", onDocumentMouseDown, false);
+        let ready = false;
+        const animate = () => {
+            let ani = requestAnimationFrame(animate);
+            stats.begin();
+            for (let i = 0; i < side1.length; i++) {
+                for (let ii in side1[i]) {
+                    // console.log(side1[i][ii])
+                    side1[i][ii].position.y = i - side1.length / 2;
+                    side1[i][ii].position.x = 3 * Math.cos(-i / 2 - count);
+                    side1[i][ii].position.z = 3 * Math.sin(-i / 2 - count);
+                    side2[i][ii].position.y = i - side1.length / 2;
+                    side2[i][ii].position.x = 3 * Math.cos(-i / 2 + Math.PI - count);
+                    side2[i][ii].position.z = 3 * Math.sin(-i / 2 + Math.PI - count);
+                }
+                side1[i].nitrogen_base.rotation.z = Math.PI / 2;
+                side2[i].nitrogen_base.rotation.z = Math.PI / 2;
+                side2[i].nitrogen_base.rotation.y = i / 2 - Math.PI + count;
+                // We've grouped the sin and cos away from the static numbers
+                side1[i].nitrogen_base.position.x = 1.5 * Math.cos(-i / 2 - count);
+                side1[i].nitrogen_base.position.z = 1.5 * Math.sin(-i / 2 - count);
+                side1[i].nitrogen_base.rotation.y = i / 2 + count;
+                side1[i].phosphate.position.x = 3 * Math.cos(-(i + 0.5) / 2 - count);
+                side1[i].phosphate.position.z = 3 * Math.sin(-(i + 0.5) / 2 - count);
+                side2[i].nitrogen_base.position.x = 1.5 * Math.cos(-i / 2 + Math.PI - count);
+                side2[i].nitrogen_base.position.z = 1.5 * Math.sin(-i / 2 + Math.PI - count);
+
+                side2[i].phosphate.position.x =
+                    3 * Math.cos(-(i + 0.5) / 2 + Math.PI - count);
+                side2[i].phosphate.position.z =
+                    3 * Math.sin(-(i + 0.5) / 2 + Math.PI - count);
+            }
+            if (lineUp) {
+                readyForSplit = true;
+                waiting++;
+            }
+            if (move) {
+                count += options["GUI Settings"].Speed;
+            }
+            if (options["GUI Settings"]["Auto Pan"]) {
+                cam.position.z = (Math.sin(count * 3 / 4) + 1) * (side1.length / 3);
+                cam.lookAt(0, 0, 0);
+            }
+            renderer.setPixelRatio(window.devicePixelRatio);
+            renderer.gammaFactor = 2.2;
+            renderer.gammaOutput = true;
+            renderer.physicallyCorrectLights = true;
+            renderer.render(scene, cam);
+            stats.end();
+        };
+        animate();
+
+    </script>
+</body>
+
+</html>

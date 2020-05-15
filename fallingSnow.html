@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <style>
+        #a {
+            position: fixed;
+            top: 0;
+            left: 0;
+            background: black;
+        }
+    </style>
+</head>
+
+<body>
+    <canvas id="a"></canvas>
+    <script>
+        var b = document.getElementById("a");
+        var c = b.getContext("2d");
+        b.width = window.innerWidth;
+        b.height = window.innerHeight;
+        c.fillStyle = "#ffffff";
+        var coor_x = [];
+        var coor_y = [];
+
+        for (var i = 0; i < 1000; i++) {
+            coor_x.push(Math.random() * b.width);
+            coor_y.push(Math.random() * b.height);
+        }
+        var bl = 0;
+        function snow() {
+            //c.clearRect(0, 0, b.width, b.height);
+            // draw all 1000 pieces of snow !
+            c.fillStyle = "#000000";
+            for (var nnn = 0; nnn <= 1000; nnn++) {
+                c.fillRect(coor_x[nnn] - 1, coor_y[nnn] - 1, 5, 5);
+            }
+
+            c.fillStyle = "#ffffff";
+            for (var nnn = 0; nnn <= 1000; nnn++) {
+                var speed = (nnn / 1000) + 0.5;
+
+                coor_y[nnn] += speed; coor_x[nnn] += speed * 1.5;
+
+                if (coor_y[nnn] >= b.height) {
+                    coor_y[nnn] = 0;
+                }
+                if (coor_x[nnn] >= b.width) {
+                    coor_x[nnn] = 0;
+                }
+                c.fillRect(coor_x[nnn], coor_y[nnn], 3, 3);
+            }
+            window.requestAnimationFrame(snow);
+        }
+        snow();
+
+//setInterval(snow, 10);
+    </script>
+</body>
+
+</html>

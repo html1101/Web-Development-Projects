@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <style>
+        input {
+            width: 0.1px;
+            height: 0.1px;
+            opacity: 0;
+            overflow: hidden;
+            position: absolute;
+            z-index: -1;
+        }
+
+        label {
+            transition: 0.25s;
+            height: 15px;
+            color: white;
+            padding: 20px;
+            position: relative;
+            display: block;
+            margin: auto;
+            width: 160px;
+            font-family: "Comfortaa";
+            color: white;
+            background: #DE4A4A;
+            border: 2px solid white;
+        }
+
+        label:hover {
+            transition: 0.25s;
+            color: #DE4A4A;
+            background: white;
+            border: 2px solid white;
+            box-shadow: 0 2px 10px -1px rgba(0, 0, 0, 0.5);
+        }
+
+        body {
+            user-select: none;
+        }
+
+        html {
+            background: #DE4A4A;
+        }
+
+        #cool {
+            text-align: center;
+            font-family: "Comfortaa";
+            color: white;
+        }
+
+        #loader {
+            display: none;
+        }
+
+        body {
+            overflow-x: hidden;
+            overflow-y: hidden;
+        }
+
+        #sign {
+            color: white;
+            font-family: "Comfortaa";
+            text-align: center;
+            margin-top: 50px;
+        }
+
+        #a {
+            animation-name: a;
+            animation-duration: 1s;
+            animation-iteration-count: infinite;
+            width: 100px;
+            height: 100px;
+            border-radius: 100%;
+            background: #FFFCF9;
+        }
+
+        #bb {
+            animation-name: b;
+            animation-duration: 1s;
+            animation-iteration-count: infinite;
+            width: 100px;
+            height: 100px;
+            border-radius: 100%;
+            background: #BFDCE7;
+            margin-top: -100px;
+            margin-left: 200px;
+        }
+
+        #c {
+            animation-name: c;
+            animation-duration: 1s;
+            animation-iteration-count: infinite;
+            width: 100px;
+            height: 100px;
+            border-radius: 100%;
+            background: #12355B;
+            margin-left: 200px;
+            margin-top: 100px;
+        }
+
+        #d {
+            animation-name: d;
+            animation-duration: 1s;
+            animation-iteration-count: infinite;
+            width: 100px;
+            height: 100px;
+            border-radius: 100%;
+            background: #272D2D;
+            margin-top: -100px;
+        }
+
+        #e {
+            margin-top: 125px;
+            margin-left: 35%;
+            animation-name: da;
+            animation-iteration-count: infinite;
+            width: 300px;
+            height: 300px;
+            animation-duration: 2s;
+            animation-timing-function: linear;
+        }
+
+        @keyframes da {
+            0% {
+                transform: rotate(-360deg);
+            }
+        }
+
+        @keyframes a {
+            50% {
+                transform: translate(30px, 30px);
+            }
+        }
+
+        @keyframes b {
+            50% {
+                transform: translate(-30px, 30px);
+            }
+        }
+
+        @keyframes c {
+            50% {
+                transform: translate(-30px, -30px);
+            }
+        }
+
+        @keyframes d {
+            50% {
+                transform: translate(30px, -30px);
+            }
+        }
+
+        #loader {
+            margin-top: -100px;
+        }
+
+        #sign {
+            font-family: "Comfortaa";
+            color: white;
+        }
+
+        #results {
+            color: white;
+            font-family: "Comfortaa";
+        }
+
+        details:focus {
+            outline: 0;
+            border: 0;
+        }
+    </style>
+</head>
+
+<body>
+    <html id="background_change">
+
+    <body id="overflowchange">
+        <link rel="stylesheet"
+            href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+        <link href="https://fonts.googleapis.com/css?family=Comfortaa" rel="stylesheet">
+        <input type="file" webkitdirectory directory multiple id="getit" />
+        <!-- webkitdirectory directory multiple-->
+        <br>
+        <div id="tochange">
+            <h1 id="cool">Analyze your Folder!</h1>
+            <label for="getit"><i class="fa fa-upload"></i> Choose a Folder</label>
+            <p id="b"></p>
+        </div>
+        <div id="loader">
+            <!--Found the idea from this:
+http://www.downgraf.com/inspiration/25-beautiful-loading-bar-design-examples-gif-animated/
+-->
+            <div id="e">
+                <div id="a"></div>
+                <div id="bb"></div>
+                <div id="c"></div>
+                <div id="d"></div>
+            </div>
+            <div id="sign">Loading...This might take a while.
+            </div>
+        </div>
+        <div id="results"></div>
+    </body>
+
+    </html>
+    <script>
+        var content_of_txts = [];
+        var check_when_to_read = false;
+        var checka = performance.now();
+        var rotate = 0;
+        function read_file(event) {
+            document.getElementById("loader").style.display = "block";
+            //document.getElementById("background_change").style.background = "black";
+            for (var i = 0; i < event.target.files.length; i++) {
+                var files = event.target.files[i];
+                var fileread = new FileReader();
+                fileread.onload = function (e) {
+                    var content = e.target.result;
+                    content_of_txts.push(content);
+                    if (content_of_txts.length === event.target.files.length) {
+                        check_when_to_read = true;
+                    }
+                };
+                fileread.readAsText(files);
+            }
+        }
+        var doc = [];
+        document.getElementById("getit").addEventListener("click", function () {
+            document.getElementById("loader").style.display = "block";
+            document.getElementById("tochange").innerHTML = "";
+        }, false);
+        document.getElementById("getit").addEventListener("change", read_file, false);
+        var num_times_run = 0;
+
+        function checking_slow() {
+            window.requestAnimationFrame(checking_slow);
+            if (check_when_to_read === true && num_times_run === 0) {
+                document.getElementById("loader").style.display = "block";
+                //Now content_of_txts works.
+                doc = content_of_txts;
+                num_times_run++;
+                console.log(doc);
+                var extra_char = [
+                    [".", ""],
+                    [",", ""],
+                    [":", ""],
+                    ["!", ""],
+                    ["?", ""],
+                    ["(", ""],
+                    [")", ""],
+                    ["'s", ""],
+                    ["\n", ""],
+                    ["/", " "],
+                    ["+", " "],
+                    ["[", ""],
+                    ["]", ""]
+                ];
+
+                function get_rid_of_special_char(document) {
+                    //We've split the document up.
+                    //Ok, since this doesn't work with long stuff, I guess we need to use regex...
+                    /*OK, for the record, this DOESN'T WORK. I'm keeping all my messed up work so that I can come back to it in a million years and say, "I was so stupid, this is easy peasy!"
+                            var newe = 0;
+                            for(var i = 0; i < extra_char.length; i++) {
+                                newe = document.replace(/extra_char[i]/g, "");
+                            }
+                            console.log(newe);
+                            return newe;*/
+                    //PLEASE WORK......
+                    //In theory, the code below should work. But of course it doesn't feel like it.
+                    document = document.toLowerCase();
+                    //var split_up_doc_extra_char = document.split("");
+                    /*for(var ii = 0; ii < split_up_doc_extra_char.length; ii++) {
+                                for(var t = 0; t < extra_char.length; t++) {
+                                    if(split_up_doc_extra_char[ii] == extra_char[t]) {
+                                        console.log("Here: " + extra_char[t]);
+                                        split_up_doc_extra_char.splice(ii, 1);
+                                    }
+                                }
+                            }
+                            console.log(split_up_doc_extra_char);*/
+                    //Hmmmm.... I've got one last idea.
+                    for (var i = 0; i < extra_char.length; i++) {
+                        document = document.split(extra_char[i][0]).join(extra_char[i][1]);
+                    }
+                    //It works with <del>short stuff, but not with long stuff.
+                    //console.log(document.toLowerCase());
+                    return document;
+                }
+                var newdoc = [];
+                for (var i = 0; i < doc.length; i++) {
+                    newdoc.push(get_rid_of_special_char(doc[i]));
+                }
+                doc = newdoc;
+
+                function tf_idf(
+                    word,
+                    document,
+                    num_of_documents,
+                    num_of_documents_containing_word
+                ) {
+                    word = word.toLowerCase();
+                    var time_words_said = 0;
+                    var split_up_doc = document.split(" ");
+                    for (var i = 0; i < split_up_doc.length; i++) {
+                        if (split_up_doc[i] == word) {
+                            time_words_said++;
+                        }
+                    }
+                    var tf = time_words_said / split_up_doc.length;
+                    var idf = Math.log10(num_of_documents / num_of_documents_containing_word);
+                    return tf * idf;
+                }
+                //It works! It works!!!
+                //Now for the good stuff.
+                //Get the last two numbers by actually making the computer do the math. I'm not going to search through a bunch of articles to find whether they say cat or not. I want the computer to do it(I'm kinda lazy).
+                //1) Turn doc into 2d array. Store some small stories in there(SMALL, then slowly get bigger so you don't glitch the browser)
+                //2) Now we've got all that stuff. Now we calculate num of doc and num of docs mentioning cats(in this case, all of them)
+                function calculating_num(data, x) {
+                    //We're going to output an array with: [number of documents, number of documents mentioning x]
+                    var num_docs_mentioning_x = 0;
+                    for (var i = 0; i < data.length; i++) {
+                        var check = true;
+                        var che = data[i].split(" ");
+                        for (var ii = 0; ii < che.length; ii++) {
+                            if (che[ii] == x && check === true) {
+                                num_docs_mentioning_x++;
+                                check = false;
+                            }
+                        }
+                    }
+                    return [data.length, num_docs_mentioning_x];
+                }
+
+                function bow(data) {
+                    //get all the words in the story
+                    var new_stor = data.slice();
+                    var numm = 0;
+                    //I don't think I need this, but I'm putting it there anyways.
+                    var output = [];
+                    while (new_stor.length) {
+                        if (
+                            new_stor[1] !== undefined &&
+                            new_stor[0][0] == new_stor[1][0] &&
+                            new_stor[0][1] == new_stor[1][1]
+                        ) {
+                            new_stor.splice(0, 1);
+                        } else {
+                            //Ex: you, you, you --> you is the same as you, so num++. Etc, etc, etc.
+                            output.push(new_stor[0]);
+                            new_stor.splice(0, 1);
+                        }
+                    }
+                    return output;
+                }
+                //I don't think this will work, but I'll try it anyways.
+                var tf_idf_for_all_words = [];
+                for (var i = 0; i < doc.length; i++) {
+                    var g = doc[i].split(" ");
+                    for (var ii = 0; ii < g.length; ii++) {
+                        var numbers_to_put_in = calculating_num(doc, g[ii]);
+                        //console.log(tf_idf(doc[i][ii], doc[i], numbers_to_put_in[0], numbers_to_put_in[1]));
+
+                        tf_idf_for_all_words.push([
+                            g[ii].toLowerCase(),
+                            tf_idf(g[ii], doc[i], numbers_to_put_in[0], numbers_to_put_in[1])
+                        ]);
+                    }
+                }
+                var change = bow(tf_idf_for_all_words.sort());
+                var changea = [];
+                for (var i = 0; i < change.length; i++) {
+                    changea.push([change[i][1], change[i][0]]);
+                }
+                change = changea.sort();
+                var checkb = performance.now();
+                document.getElementById("loader").style.display = "none";
+                document.getElementById("overflowchange").style.overflowY = "scroll";
+                document.getElementById("results").innerHTML = "<h1>Results:</h1>It took " + Math.round((checkb - checka)) + " milliseconds to complete.<br>Here is the tf-idf of your files:<br><details><summary>Array(" + change.length + ")</summary>";
+                for (var i = 0; i < change.length; i++) {
+                    document.getElementById("results").innerHTML += change[i][0] + " : " + change[i][1] + "<br>";
+                }
+                document.getElementById("results").innerHTML += "</details>";
+                function notifyMe() {
+                    if (!("Notification" in window)) {
+                        alert("This browser does not support desktop notification");
+                    }
+                    else if (Notification.permission == "granted") {
+                        console.log("Notifications enabled.");
+                        var notification = new Notification("Hi! Your folder has been analysed.");
+                    }
+                    else if (Notification.permission !== "denied") {
+                        Notification.requestPermission(function (permission) {
+                            if (permission == "granted") {
+                                console.log("Notifications enabled.");
+                                var notification = new Notification("Hi! Your folder has been analysed.");
+                            }
+                        });
+                    }
+                }
+                notifyMe();
+                //document.write(checkb - checka);
+                //YES!!!! BOW(Bag of Words) working, but now we just need to figure out what on earth is wrong with get_rid_of_special_char();
+                //We actually really need to fix it.
+                //Now it actually works. You can put a folder in, and, BOOM, everthing works!
+                //Now what?
+                //*Gulp* It's time to find the greatest value(the moment of truth!)
+                //Keep in mind, you have two useless things.
+            }
+        }
+        checking_slow();
+//Ex: 100-word document contains the word cat 5 times. TF is 0.05.
+//Let's now say cat was mentioned 300,000 times in 10,000,000 documents.
+//Then the IDF would be log(10,000,000 / 300,000)
+//Then multiply them together. Your answer should be 0.182.
+//Version 0.1.0: Document created.
+//Version 0.2.0: Document can find tf-idf from doc.
+//Version 0.2.0: Bug found, but I don't have the bug spray to kill it.
+//Version 0.2.1: Bug killed!
+//Version 0.3.0: File system added, finds tf-idf of it. Not much left to do from here.
+//Version 0.3.1: Extra styles, making it more appealing. Putting array to the DOM since Codepen console can't display the array if it's too big. I need a loading thing too, probably.
+    </script>
+</body>
+
+</html>

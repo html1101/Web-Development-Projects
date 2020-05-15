@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <style>
+        #a {
+            position: fixed;
+            top: 0;
+            left: 0;
+            background: black;
+        }
+    </style>
+</head>
+
+<body>
+    <canvas id="a"></canvas>
+    <script>
+        var b = document.getElementById("a");
+        var c = b.getContext("2d");
+        b.width = window.innerWidth;
+        b.height = window.innerHeight;
+        var x_pos = [],
+            y_pos = [],
+            x_centre = b.width / 2,
+            y_centre = b.height / 2;
+
+        // Setup 
+        for (var i = 0; i < 2000; i++) {
+            x_pos.push(Math.random() * 200);
+            y_pos.push(Math.random() * Math.PI * 2);
+        }
+        var fps = 100;
+
+        var time = 0;
+
+        var off = Math.sin(time) + 1;
+        function la(x, y) {
+            time++;
+            c.clearRect(0, 0, b.width, b.height);
+            for (var i = 0; i <= 2000; i++) {
+                //var speed = (y_pos[i]/300);
+                var radius = x_centre + Math.cos(y_pos[i]) * (x_pos[i]);
+                var degrees = y_centre + Math.sin(y_pos[i]) * (x_pos[i]);
+                c.fillStyle = "hsla(" + i + ", 100%, 50%, 1)";
+                //c.beginPath();
+                c.fillRect(radius, degrees, 3, 3);
+                c.fill();
+                if (x_pos[i] < -b.width / 2) {
+                    x_pos[i] += b.width / 2;
+                }
+                x_pos[i] -= 1.5;
+            }
+        }
+        var x = b.width / 2;
+        var y = b.height / 2;
+        function run() {
+            setTimeout(function () {
+                requestAnimationFrame(run);
+                la(x, y);
+            }, 1000 / fps);
+        }
+        run();
+    </script>
+</body>
+
+</html>
